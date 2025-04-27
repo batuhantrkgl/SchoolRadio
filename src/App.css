@@ -1,264 +1,274 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@600&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@600&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&display=swap");
 
 * {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
 }
 
 .App {
-  min-height: 100vh;
-  width: 100vw;
-  overflow-x: hidden;
-  position: relative;
-  color: white;
+    min-height: 100vh;
+    width: 100vw;
+    overflow-x: hidden;
+    position: relative;
+    color: white;
 }
 
 .main-content {
-  height: 100vh;
-  width: 100%;
-  position: relative;
-  overflow: hidden;
+    height: 100vh;
+    width: 100%;
+    position: relative;
+    overflow: hidden;
 }
 
 .additional-content {
-  background-color: #121212;
-  position: relative;
-  z-index: 10;
-  padding-top: 40px;
-  padding-bottom: 20px;
+    background-color: #121212;
+    position: relative;
+    z-index: 10;
+    padding-top: 40px;
+    padding-bottom: 20px;
 }
 
 .container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
 }
 
 .background-cover {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-size: cover;
-  background-position: center;
-  z-index: -1;
-  filter: brightness(0.7);
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-size: cover;
+    background-position: center;
+    z-index: -1;
+    filter: brightness(0.7);
 }
 
 .background-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(0deg, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.3) 50%, rgba(0,0,0,0.1) 100%);
-  z-index: -1;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+        0deg,
+        rgba(0, 0, 0, 0.7) 0%,
+        rgba(0, 0, 0, 0.3) 50%,
+        rgba(0, 0, 0, 0.1) 100%
+    );
+    z-index: -1;
 }
 
 .hidden-player {
-  position: absolute;
-  top: -9999px;
-  left: -9999px;
-  width: 1px;
-  height: 1px;
-  overflow: hidden;
+    position: absolute;
+    top: -9999px;
+    left: -9999px;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
 }
 
 .now-playing-info {
-  position: absolute;
-  bottom: 30px;
-  left: 30px;
-  max-width: 90%;
-  text-align: left;
-  z-index: 10;
+    position: absolute;
+    bottom: 30px;
+    left: 30px;
+    max-width: 90%;
+    text-align: left;
+    z-index: 10;
 }
 
 .track-info {
-  margin-bottom: 8px;
+    margin-bottom: 8px;
 }
 
 .now-playing-text {
-  font-family: 'Inter', sans-serif;
-  font-weight: 600;
-  font-style: italic;
-  font-size: 24px;
-  margin-bottom: 4px;
+    font-family: "Inter", sans-serif;
+    font-weight: 600;
+    font-style: italic;
+    font-size: 24px;
+    margin-bottom: 4px;
 }
 
-.next-up-text, .playlist-text {
-  font-family: 'Inter', sans-serif;
-  font-weight: 600;
-  font-style: italic;
-  font-size: 12px;
-  margin-bottom: 4px;
-  opacity: 0.9;
+.next-up-text,
+.playlist-text {
+    font-family: "Inter", sans-serif;
+    font-weight: 600;
+    font-style: italic;
+    font-size: 12px;
+    margin-bottom: 4px;
+    opacity: 0.9;
 }
 
 .progress-container {
-  position: absolute;
-  bottom: 120px;
-  left: 30px;
-  right: 30px;
-  display: flex;
-  flex-direction: column;
-  z-index: 10;
+    position: absolute;
+    bottom: 120px;
+    left: 30px;
+    right: 30px;
+    display: flex;
+    flex-direction: column;
+    z-index: 10;
 }
 
 .time-display {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 6px;
-  font-family: 'Inter', sans-serif;
-  font-size: 12px;
-  opacity: 0.9;
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 6px;
+    font-family: "Inter", sans-serif;
+    font-size: 12px;
+    opacity: 0.9;
 }
 
 .progress-bar {
-  width: 100%;
-  height: 4px;
-  background-color: rgba(255, 255, 255, 0.3);
-  border-radius: 2px;
-  overflow: hidden;
-  margin-bottom: 1rem;
+    width: 100%;
+    height: 4px;
+    background-color: rgba(255, 255, 255, 0.3);
+    border-radius: 2px;
+    overflow: hidden;
+    margin-bottom: 1rem;
 }
 
 .progress-fill {
-  height: 100%;
-  background-color: white;
-  border-radius: 2px;
-  transition: width 1s linear;
+    height: 100%;
+    background-color: white;
+    border-radius: 2px;
+    transition: width 1s linear;
 }
 
 .unmute-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(0, 0, 0, 0.7);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 1000;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
 }
 
 .unmute-button {
-  padding: 15px 30px;
-  font-size: 1.2rem;
-  background-color: rgba(255, 255, 255, 0.2);
-  color: white;
-  border: 1px solid white;
-  border-radius: 30px;
-  cursor: pointer;
-  transition: background-color 0.3s;
-  font-family: 'Inter', sans-serif;
+    padding: 15px 30px;
+    font-size: 1.2rem;
+    background-color: rgba(255, 255, 255, 0.2);
+    color: white;
+    border: 1px solid white;
+    border-radius: 30px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    font-family: "Inter", sans-serif;
 }
 
 .unmute-button:hover {
-  background-color: rgba(255, 255, 255, 0.3);
+    background-color: rgba(255, 255, 255, 0.3);
 }
 
-.loading-container, .error-container {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  background-color: rgba(0, 0, 0, 0.8);
-  z-index: 100;
+.loading-container,
+.error-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: rgba(0, 0, 0, 0.8);
+    z-index: 100;
 }
 
-.loading-container p, .error-container p {
-  font-family: 'Inter', sans-serif;
-  font-size: 1.5rem;
-  color: white;
+.loading-container p,
+.error-container p {
+    font-family: "Inter", sans-serif;
+    font-size: 1.5rem;
+    color: white;
 }
 
 .error {
-  color: #ff6b6b;
-  font-weight: bold;
+    color: #ff6b6b;
+    font-weight: bold;
 }
 
 /* Disclaimer Modal */
 .modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(0, 0, 0, 0.8);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 1000;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.8);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
 }
 
 .disclaimer-modal {
-  background-color: rgba(0, 0, 0, 0.8);
-  color: white;
-  width: 90%;
-  max-width: 500px;
-  border-radius: 10px;
-  padding: 25px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  backdrop-filter: blur(10px);
+    background-color: rgba(0, 0, 0, 0.8);
+    color: white;
+    width: 90%;
+    max-width: 500px;
+    border-radius: 10px;
+    padding: 25px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(10px);
 }
 
 .disclaimer-modal h3 {
-  font-family: 'Inter', sans-serif;
-  margin-top: 0;
-  margin-bottom: 20px;
-  font-size: 1.6rem;
+    font-family: "Inter", sans-serif;
+    margin-top: 0;
+    margin-bottom: 20px;
+    font-size: 1.6rem;
 }
 
 .disclaimer-modal p {
-  font-family: 'Inter', sans-serif;
-  margin: 15px 0;
-  line-height: 1.5;
-  font-size: 1.1rem;
+    font-family: "Inter", sans-serif;
+    margin: 15px 0;
+    line-height: 1.5;
+    font-size: 1.1rem;
 }
 
 .modal-close-button {
-  background-color: white;
-  color: black;
-  border: none;
-  padding: 12px 24px;
-  margin-top: 20px;
-  border-radius: 30px;
-  cursor: pointer;
-  font-family: 'Inter', sans-serif;
-  font-size: 1rem;
-  font-weight: 600;
-  transition: opacity 0.3s;
+    background-color: white;
+    color: black;
+    border: none;
+    padding: 12px 24px;
+    margin-top: 20px;
+    border-radius: 30px;
+    cursor: pointer;
+    font-family: "Inter", sans-serif;
+    font-size: 1rem;
+    font-weight: 600;
+    transition: opacity 0.3s;
 }
 
 .modal-close-button:hover {
-  opacity: 0.9;
+    opacity: 0.9;
 }
 
 /* Responsive Adjustments */
 @media (max-width: 768px) {
-  .now-playing-info {
-    bottom: 20px;
-    left: 20px;
-  }
+    .now-playing-info {
+        bottom: 20px;
+        left: 20px;
+    }
 
-  .now-playing-text {
-    font-size: 20px;
-  }
+    .now-playing-text {
+        font-size: 20px;
+    }
 
-  .next-up-text, .playlist-text {
-    font-size: 10px;
-  }
+    .next-up-text,
+    .playlist-text {
+        font-size: 10px;
+    }
 
-  .progress-container {
-    bottom: 100px;
-    left: 20px;
-    right: 20px;
-  }
+    .progress-container {
+        bottom: 100px;
+        left: 20px;
+        right: 20px;
+    }
 }
