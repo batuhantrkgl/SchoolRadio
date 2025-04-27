@@ -62,9 +62,67 @@ This section has moved here: [https://facebook.github.io/create-react-app/docs/m
 This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
 
 ### Deployment
+# School Radio Application
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+A React application that automatically plays music from a YouTube playlist when loaded. The application selects videos randomly from a specified playlist and plays them for all users at the same time.
 
-### `npm run build` fails to minify
+## Setup
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+1. Clone this repository
+2. Install dependencies:
+   ```
+   npm install
+   ```
+3. Get a YouTube Data API key:
+   - Go to [Google Cloud Console](https://console.cloud.google.com/)
+   - Create a new project or select an existing one
+   - Enable YouTube Data API v3
+   - Create an API key
+   - Restrict the API key to YouTube Data API
+
+4. Set up Firebase for real-time listener tracking:
+   - Go to [Firebase Console](https://console.firebase.google.com/)
+   - Create a new project or select an existing one
+   - Set up a Realtime Database (not Firestore)
+   - Set the database rules to allow read/write access:
+   ```
+   {
+     "rules": {
+       ".read": true,
+       ".write": true
+     }
+   }
+   ```
+   - Go to Project Settings > General to get your Firebase configuration
+
+5. Set up your environment variables:
+   - Create a `.env` file in the root directory based on the `.env.sample` file:
+   ```
+   # YouTube API Key
+   REACT_APP_YOUTUBE_API_KEY=your_youtube_api_key_here
+   REACT_APP_PLAYLIST_ID=your_playlist_id_here
+
+   # Firebase Configuration
+   REACT_APP_FIREBASE_API_KEY=your_firebase_api_key_here
+   REACT_APP_FIREBASE_AUTH_DOMAIN=your_project_id.firebaseapp.com
+   REACT_APP_FIREBASE_DATABASE_URL=https://your_project_id.firebaseio.com
+   REACT_APP_FIREBASE_PROJECT_ID=your_project_id
+   REACT_APP_FIREBASE_STORAGE_BUCKET=your_project_id.appspot.com
+   REACT_APP_FIREBASE_MESSAGING_SENDER_ID=your_messaging_sender_id
+   REACT_APP_FIREBASE_APP_ID=your_app_id
+   ```
+
+6. Start the development server:
+   ```
+   npm start
+   ```
+
+## Features
+
+- Synchronized music playback from YouTube playlist
+- Real-time listener tracking with Firebase
+- Display of current and total listener counts
+- Ping measurements to YouTube API and Firebase
+- Responsive design for all device sizes
+- Coming up next track display
+- Progress bar with time display
