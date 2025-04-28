@@ -30,7 +30,7 @@ const Player = ({
       autoplay: 1, // Autoplay
       quality: "small", // Default to small quality
       mute: 1, // Start muted
-      origin: window.location.origin, // Set the origin
+      origin: 'http://localhost:3000', // Fixed origin for development
     },
   };
 
@@ -79,7 +79,20 @@ const Player = ({
 
   const optimizeForAudioOnly = useCallback(() => {
     if (playerRef.current) {
-      playerRef.current.internalPlayer.setPlaybackQuality("small");
+      try {
+        if (playerRef.current.internalPlayer) {
+          playerRef.current.internalPlayer.setPlaybackQuality("small");
+        } else {
+          console.warn("Failed to set playback quality, ignoring: internalPlayer is null");
+        }
+      } catch (error) {
+        console.warn("Failed to execute setPlaybackQuality operation in optimizeForAudioOnly:", error.message);
+        // Reset the player reference if it's invalid
+        if (error.message.includes("null") || error.message.includes("undefined")) {
+          console.log("Resetting invalid player reference in optimizeForAudioOnly");
+          playerRef.current = null;
+        }
+      }
     }
   }, []);
 
@@ -114,28 +127,80 @@ const Player = ({
     safePlayerSetVolume(100);
   }, [safePlayerUnMute, safePlayerSetVolume]);
 
+  // Define resetYouTubePlayer first to avoid circular reference
+  const resetYouTubePlayer = useCallback(() => {
+    if (playerRef.current) {
+      try {
+        // First try to stop the video
+        try {
+          playerRef.current.stopVideo();
+        } catch (stopError) {
+          console.warn("Failed to stop video during reset:", stopError.message);
+        }
+
+        // Then try to seek to the beginning
+        try {
+          playerRef.current.seekTo(0, true);
+        } catch (seekError) {
+          console.warn("Seek failed, will retry player initialization", seekError.message);
+        }
+
+        // Try to play, unmute, and set volume
+        safePlayerPlay();
+        safePlayerUnMute();
+        safePlayerSetVolume(100);
+        playerErrorCountRef.current = 0;
+      } catch (error) {
+        console.error("Error during player reset:", error.message);
+        // If we encounter a serious error, null out the player reference
+        // so it can be recreated on next interaction
+        playerRef.current = null;
+      }
+    }
+  }, [safePlayerPlay, safePlayerUnMute, safePlayerSetVolume]);
+
   const onPlayerStateChange = useCallback(
     (event) => {
       try {
         const state = event.data;
         ensurePlayback(state);
         if (state === -1) {
+          // Unstarted state - set a timeout to check if it's still unstarted after 5 seconds
           unstartedTimeoutRef.current = setTimeout(() => {
-            if (playerRef.current.getPlayerState() === -1) {
+            try {
+              if (playerRef.current && playerRef.current.getPlayerState() === -1) {
+                resetYouTubePlayer();
+              }
+            } catch (timeoutError) {
+              console.warn("Error checking player state in timeout:", timeoutError.message);
+              // If we can't check the state, assume we need to reset
               resetYouTubePlayer();
             }
           }, 5000);
         } else {
-          clearTimeout(unstartedTimeoutRef.current);
+          // Clear any pending timeouts if the state changes
+          if (unstartedTimeoutRef.current) {
+            clearTimeout(unstartedTimeoutRef.current);
+          }
+
+          // If playing or ended, ensure audio is unmuted
           if (state === 1 || state === 0) {
-            ensureAudio();
+            try {
+              ensureAudio();
+            } catch (audioError) {
+              console.warn("Failed to execute unmute during playing operation in state change:", audioError.message);
+            }
           }
         }
       } catch (error) {
-        // Handle any errors during state change handling
+        console.error("Error handling player state change:", error.message);
+        // If we encounter a serious error during state change, consider resetting the player
+        if (error.message.includes("null") || error.message.includes("undefined")) {
+          resetYouTubePlayer();
+        }
       }
     },
-    [ensureAudio, ensurePlayback],
+    [ensureAudio, ensurePlayback, resetYouTubePlayer],
   );
 
   const onPlayerError = useCallback(
@@ -159,21 +224,6 @@ const Player = ({
     },
     [nextTrack, resetYouTubePlayer],
   );
-
-  const resetYouTubePlayer = useCallback(() => {
-    if (playerRef.current) {
-      try {
-        playerRef.current.stopVideo();
-        playerRef.current?.seekTo(0, true);
-        safePlayerPlay();
-        safePlayerUnMute();
-        safePlayerSetVolume(100);
-        playerErrorCountRef.current = 0;
-      } catch (error) {
-        // Handle error when resetting the player
-      }
-    }
-  }, []);
 
   useEffect(() => {
     optimizeForAudioOnly();

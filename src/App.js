@@ -56,6 +56,8 @@ function App() {
   const [currentTime, setCurrentTime] = useState('0:00');
   const [stablePlayState, setStablePlayState] = useState(true);
   const [showDisclaimerModal, setShowDisclaimerModal] = useState(true);
+  const [disclaimerButtonDisabled, setDisclaimerButtonDisabled] = useState(true);
+  const [disclaimerCountdown, setDisclaimerCountdown] = useState(10);
   const [upcomingTracks, setUpcomingTracks] = useState([]);
 
   // State for diagnostics
@@ -545,8 +547,8 @@ function App() {
       html5: 1, // Force HTML5 player
       playsinline: 1, // Required for autoplay on mobile
       enablejsapi: 1, // Enable JavaScript API
-      origin: window.location.origin, // Set explicit origin to fix CORS issues
-      host: window.location.protocol + '//' + window.location.hostname, // Explicit host
+      // Fix for postMessage origin mismatch errors
+      origin: 'http://localhost:3000',
     },
     // Add onError handler at YouTube component level
     onError: (e) => console.log("YouTube player error:", e)
@@ -557,19 +559,26 @@ function App() {
 
   // Function to initialize audio context on user interaction
   const startAutoPlayback = () => {
+    // Only create AudioContext after user interaction
+    // This will be called after a user gesture (like clicking a button)
     if (typeof window !== 'undefined' && !audioContextRef.current) {
       try {
         const AudioContext = window.AudioContext || window.webkitAudioContext;
         if (AudioContext) {
-          // Just create the context but don't resume until user interaction
+          // Create the context after user interaction
           audioContextRef.current = new AudioContext();
-          // Don't log AudioContext creation
+          // Resume immediately since we're in a user gesture handler
+          if (audioContextRef.current.state !== 'running') {
+            audioContextRef.current.resume().catch(err => {
+              console.error('Failed to resume AudioContext:', err);
+            });
+          }
         }
-              } catch (e) {
+      } catch (e) {
         console.error('AudioContext initialization failed', e);
-              }
-            }
-          };
+      }
+    }
+  };
 
           // Function to resume audio context after user interaction
           const resumeAudioContext = () => {
@@ -753,6 +762,26 @@ function App() {
   // Track user interaction to enable audio
   const [userInteracted, setUserInteracted] = useState(false);
 
+  // Effect for disclaimer button countdown
+  useEffect(() => {
+    let timer;
+    if (showDisclaimerModal && disclaimerButtonDisabled) {
+      timer = setInterval(() => {
+        setDisclaimerCountdown(prevCount => {
+          if (prevCount <= 1) {
+            clearInterval(timer);
+            setDisclaimerButtonDisabled(false);
+            return 0;
+          }
+          return prevCount - 1;
+        });
+      }, 1000);
+    }
+    return () => {
+      if (timer) clearInterval(timer);
+    };
+  }, [showDisclaimerModal, disclaimerButtonDisabled]);
+
   // Set up event listener for user interaction
   useEffect(() => {
     const handleUserInteraction = () => {
@@ -831,6 +860,17 @@ function App() {
       criticalLog("YouTube player is ready");
       playerRef.current = event.target;
 
+      // Ensure the iframe has the correct origin attribute for postMessage
+      try {
+        const iframe = event.target.getIframe();
+        if (iframe) {
+          // Force the origin attribute to match our hardcoded value
+          iframe.setAttribute('origin', 'http://localhost:3000');
+        }
+      } catch (originError) {
+        console.warn("Could not set iframe origin attribute:", originError.message);
+      }
+
       // Configure player for audio-only low quality
       if (event.target) {
         try {
@@ -856,6 +896,18 @@ function App() {
               return true;
             } catch (e) {
               console.error(`Failed to execute ${name} operation:`, e);
+
+              // Check for common null reference errors and reset player if needed
+              if (e.message && (
+                  e.message.includes("this.g is null") || 
+                  e.message.includes("Cannot read properties of null") ||
+                  e.message.includes("undefined")
+              )) {
+                console.warn(`Detected null reference in ${name}, will reset player reference`);
+                // Reset the player reference to force re-initialization
+                playerRef.current = null;
+              }
+
               return false;
             }
           };
@@ -1437,8 +1489,11 @@ function App() {
               <button 
                 className="modal-close-button" 
                 onClick={() => setShowDisclaimerModal(false)}
+                disabled={disclaimerButtonDisabled}
               >
-                I Understand
+                {disclaimerButtonDisabled 
+                  ? `I Understand (${disclaimerCountdown}s)` 
+                  : 'I Understand'}
               </button>
             </div>
           </div>
