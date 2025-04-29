@@ -33,17 +33,32 @@ export const registerListener = async () => {
     const snapshot = await get(statsRef);
     const stats = snapshot.exists() ? snapshot.val() : { currentListeners: 0, totalListeners: 0 };
 
-    // Update stats
-    await set(statsRef, {
-      currentListeners: stats.currentListeners + 1,
-      totalListeners: stats.totalListeners + 1,
-      lastUpdated: serverTimestamp()
-    });
-
     // Store the session ID to track this listener
     await set(ref(database, `listeners/${sessionId}`), {
       timestamp: serverTimestamp(),
       active: true
+    });
+
+    // Count active listeners to ensure accuracy
+    const listenersRef = ref(database, 'listeners');
+    const listenersSnapshot = await get(listenersRef);
+    let activeListenersCount = 0;
+
+    if (listenersSnapshot.exists()) {
+      const listeners = listenersSnapshot.val();
+      // Count only active listeners
+      Object.values(listeners).forEach(listener => {
+        if (listener.active === true) {
+          activeListenersCount++;
+        }
+      });
+    }
+
+    // Update stats with accurate count
+    await set(statsRef, {
+      currentListeners: activeListenersCount,
+      totalListeners: stats.totalListeners + 1,
+      lastUpdated: serverTimestamp()
     });
 
     // Set up cleanup on window close/refresh
@@ -58,18 +73,31 @@ export const registerListener = async () => {
 
 /**
  * Unregister a listener when they leave
- * This will decrement the current listeners count
+ * This will update the current listeners count based on active listeners
  */
 export const unregisterListener = async () => {
   try {
-    // Reference to the stats in the database
-    const statsRef = ref(database, 'stats/currentListeners');
-
-    // Decrement current listeners count
-    await set(statsRef, increment(-1));
-
     // Mark this listener as inactive
     await set(ref(database, `listeners/${sessionId}/active`), false);
+
+    // Count active listeners to ensure accuracy
+    const listenersRef = ref(database, 'listeners');
+    const listenersSnapshot = await get(listenersRef);
+    let activeListenersCount = 0;
+
+    if (listenersSnapshot.exists()) {
+      const listeners = listenersSnapshot.val();
+      // Count only active listeners
+      Object.values(listeners).forEach(listener => {
+        if (listener.active === true) {
+          activeListenersCount++;
+        }
+      });
+    }
+
+    // Update stats with accurate count
+    const statsRef = ref(database, 'stats/currentListeners');
+    await set(statsRef, activeListenersCount);
 
     return true;
   } catch (error) {
@@ -133,5 +161,54 @@ export const checkFirebaseAccess = async () => {
   } catch (error) {
     console.error('Firebase access check failed:', error);
     return { success: false, message: 'Unable to access Firebase. It may be blocked or down.' };
+  }
+};
+
+/**
+ * Clean up inactive listeners and update the current listeners count
+ * This helps handle cases where the beforeunload event doesn't fire
+ * @returns {Promise<boolean>} - Whether the cleanup was successful
+ */
+export const cleanupInactiveListeners = async () => {
+  try {
+    // Get all listeners
+    const listenersRef = ref(database, 'listeners');
+    const listenersSnapshot = await get(listenersRef);
+
+    if (!listenersSnapshot.exists()) {
+      return true;
+    }
+
+    const listeners = listenersSnapshot.val();
+    let activeListenersCount = 0;
+    const now = Date.now();
+    const INACTIVE_THRESHOLD = 5 * 60 * 1000; // 5 minutes in milliseconds
+
+    // Process each listener
+    for (const [id, listener] of Object.entries(listeners)) {
+      if (listener.active === true) {
+        // Check if the listener has a timestamp
+        if (listener.timestamp) {
+          const listenerTime = new Date(listener.timestamp).getTime();
+          // If the listener hasn't updated in the threshold time, mark as inactive
+          if (now - listenerTime > INACTIVE_THRESHOLD) {
+            await set(ref(database, `listeners/${id}/active`), false);
+          } else {
+            activeListenersCount++;
+          }
+        } else {
+          activeListenersCount++;
+        }
+      }
+    }
+
+    // Update the current listeners count
+    const statsRef = ref(database, 'stats/currentListeners');
+    await set(statsRef, activeListenersCount);
+
+    return true;
+  } catch (error) {
+    console.error('Error cleaning up inactive listeners:', error);
+    return false;
   }
 };

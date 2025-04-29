@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import './StatsDisplay.css';
-import { registerListener, unregisterListener, subscribeToStats } from '../services/firebaseService';
+import { registerListener, unregisterListener, subscribeToStats, cleanupInactiveListeners } from '../services/firebaseService';
 
 /**
  * Component to display radio statistics
@@ -17,15 +17,28 @@ const StatsDisplay = ({ playedTracks }) => {
       console.error('Failed to register listener:', error);
     });
 
+    // Run cleanup once on mount to fix any existing issues with the count
+    cleanupInactiveListeners().catch(error => {
+      console.error('Failed to clean up inactive listeners:', error);
+    });
+
     // Subscribe to real-time updates on listener stats
     const unsubscribe = subscribeToStats((stats) => {
       setListeners(stats.currentListeners || 0);
       setTotalListeners(stats.totalListeners || 0);
     });
 
+    // Set up periodic cleanup of inactive listeners
+    const cleanupInterval = setInterval(() => {
+      cleanupInactiveListeners().catch(error => {
+        console.error('Failed to clean up inactive listeners:', error);
+      });
+    }, 60000); // Run every minute
+
     // Clean up on unmount
     return () => {
       unsubscribe();
+      clearInterval(cleanupInterval);
       unregisterListener().catch(error => {
         console.error('Failed to unregister listener:', error);
       });
