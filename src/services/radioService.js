@@ -235,6 +235,14 @@ export const getCurrentTrack = (state, serverStartTime) => {
     totalPlaylistDuration += trackDuration;
   }
 
+  // If totalPlaylistDuration is 0, use a default value to avoid division by zero
+  if (totalPlaylistDuration === 0) {
+    totalPlaylistDuration = playlist.length * 3 * 60 * 1000; // Default 3 minutes per track
+    for (let i = 0; i < playlist.length; i++) {
+      trackDurations[i] = 3 * 60 * 1000;
+    }
+  }
+
   // Get the current epoch (how many times we've gone through the full playlist)
   const epoch = Math.floor(elapsed / totalPlaylistDuration);
 
@@ -251,6 +259,11 @@ export const getCurrentTrack = (state, serverStartTime) => {
       break;
     }
     accumulatedDuration += trackDurations[i];
+  }
+
+  // If we didn't find a track (which shouldn't happen), default to the first track
+  if (currentIndex >= playlist.length) {
+    currentIndex = 0;
   }
 
   // Log strict interval (30 seconds) or track change since last interval log

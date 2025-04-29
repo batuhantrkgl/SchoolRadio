@@ -59,6 +59,7 @@ function App() {
   const [disclaimerButtonDisabled, setDisclaimerButtonDisabled] = useState(true);
   const [disclaimerCountdown, setDisclaimerCountdown] = useState(10);
   const [upcomingTracks, setUpcomingTracks] = useState([]);
+  const [radioStateData, setRadioStateData] = useState(null);
 
   // State for diagnostics
   const [diagnostics, setDiagnostics] = useState(null);
@@ -177,6 +178,9 @@ function App() {
     // Subscribe to radio state updates
     const unsubscribeRadioState = subscribeToRadioState((newState) => {
       console.log("Received real-time update for radio state");
+
+      // Update the radio state data for use in the UI
+      setRadioStateData(newState);
 
       // If we have a current track, check if it changed
       if (currentTrack) {
@@ -329,6 +333,9 @@ function App() {
           radioState = await initializeRadio(items);
         }
 
+        // Set the radio state data for use in the UI
+        setRadioStateData(radioState);
+
         // Get current track based on server time
         const currentTrackInfo = getCurrentTrack(radioState, serverStartTime.current);
 
@@ -349,7 +356,13 @@ function App() {
           }, 500);
         } else {
           console.error("No current track found");
-          setError('No tracks available for playback.');
+          // Only show error if there are actually no tracks
+          if (!radioState || !radioState.playlist || radioState.playlist.length === 0) {
+            setError('No tracks available for playback.');
+          } else {
+            console.log(`Tracks are available (${radioState.playlist.length}), but getCurrentTrack returned null`);
+            // Don't set an error if tracks exist but getCurrentTrack failed for some reason
+          }
           setIsLoading(false);
         }
       } catch (err) {
@@ -405,6 +418,9 @@ function App() {
           console.warn("No radio state found in timer");
           return;
         }
+
+        // Update the radio state data for use in the UI
+        setRadioStateData(radioState);
 
         const currentTrackInfo = getCurrentTrack(radioState, serverStartTime.current);
         if (!currentTrackInfo) {
@@ -1542,7 +1558,7 @@ function App() {
       <div className="additional-content" id="content">
         <div className="container">
           {/* Stats Display */}
-          <StatsDisplay playedTracks={getRadioState()?.playedTracks} />
+          <StatsDisplay playedTracks={radioStateData?.playedTracks} />
 
           {/* Ping Display */}
           <PingDisplay apiKey={YOUTUBE_API_KEY} />
@@ -1550,7 +1566,7 @@ function App() {
           {/* Playlist Display */}
           <div id="playlist">
             <PlaylistDisplay 
-              playlist={getRadioState()?.playlist || []} 
+              playlist={radioStateData?.playlist || []} 
               currentTrack={currentTrack} 
             />
           </div>
