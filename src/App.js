@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback, Component } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import YouTube from 'react-youtube';
 import { fetchPlaylistItems } from './services/youtubeService';
 import { 
@@ -17,12 +18,16 @@ import {
 import { runAllDiagnostics, checkSystemCompatibility } from './services/connectionService';
 import './App.css';
 
-// Import new components
+// Import components
 import PlaylistDisplay from './components/PlaylistDisplay';
 import StatsDisplay from './components/StatsDisplay';
 import PingDisplay from './components/PingDisplay';
 import FAQ from './components/FAQ';
 import Footer from './components/Footer';
+import Login from './components/Login';
+import Header from './components/Header';
+import ProtectedRoute from './components/ProtectedRoute';
+import AccountSettings from './components/AccountSettings';
 
 // Error Boundary component for YouTube player
 class ErrorBoundary extends Component {
@@ -1372,8 +1377,17 @@ function App() {
   };
 
   return (
-    <div className="App">
+    <Router>
+      <div className="app">
+        <Routes>
+          <Route path="/login" element={<Login />} />
+          <Route
+            path="/"
+            element={
+              <ProtectedRoute>
       <div className="main-content">
+                  <Header />
+                  <div className="content">
         {/* Background elements */}
         <div 
           className="background-cover" 
@@ -1551,6 +1565,7 @@ function App() {
               </ul>
             </div>
           )}
+                    </div>
         </div>
       </div>
 
@@ -1580,7 +1595,20 @@ function App() {
         {/* Footer */}
         <Footer />
       </div>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/account"
+            element={
+              <ProtectedRoute>
+                <AccountSettings />
+              </ProtectedRoute>
+            }
+          />
+        </Routes>
     </div>
+    </Router>
   );
 }
 

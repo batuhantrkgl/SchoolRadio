@@ -86,6 +86,7 @@
 }
 
 .now-playing-text {
+    color: white;
     font-family: "Inter", sans-serif;
     font-weight: 600;
     font-style: italic;
@@ -95,6 +96,7 @@
 
 .next-up-text,
 .playlist-text {
+    color: white;   
     font-family: "Inter", sans-serif;
     font-weight: 600;
     font-style: italic;
@@ -114,6 +116,7 @@
 }
 
 .time-display {
+    color: white;
     display: flex;
     justify-content: space-between;
     margin-bottom: 6px;
